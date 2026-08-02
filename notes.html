@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Private Page</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    max-width: 640px;
+    margin: 4rem auto;
+    padding: 0 1.5rem;
+    color: #111;
+  }
+  #gate { text-align: center; margin-top: 6rem; }
+  #gate input {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 200px;
+  }
+  #gate button {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    margin-left: 0.5rem;
+    border: 1px solid #111;
+    background: #111;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  #gate p.error { color: #c0392b; font-size: 0.9rem; }
+  #content { display: none; }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <p>This page is password protected.</p>
+  <input type="password" id="pw" placeholder="Password" autofocus>
+  <button onclick="checkPassword()">Enter</button>
+  <p class="error" id="err" style="display:none;">Incorrect password.</p>
+</div>
+
+<div id="content">
+  <!-- ====================================== -->
+  <!-- Put the real page content here.        -->
+  <h1>Welcome</h1>
+  <p>This is the protected content.</p>
+  <!-- ====================================== -->
+</div>
+
+<script>
+// SHA-256 hash of the password. Generate your own with:
+//   echo -n "yourpassword" | sha256sum      (Mac/Linux)
+// Replace the value below with your own hash — do NOT leave the example password in place.
+const PASSWORD_HASH = "7e74cd6702ebd9e219c0a473d4132cd9d0947ef7adf99dc71565310cfa56a5d2";
+
+async function sha256(text) {
+  const data = new TextEncoder().encode(text);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function checkPassword() {
+  const input = document.getElementById("pw").value;
+  const hash = await sha256(input);
+  if (hash === PASSWORD_HASH) {
+    document.getElementById("gate").style.display = "none";
+    document.getElementById("content").style.display = "block";
+    sessionStorage.setItem("unlocked", "true");
+  } else {
+    document.getElementById("err").style.display = "block";
+  }
+}
+
+document.getElementById("pw").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") checkPassword();
+});
+
+// Skip the prompt again for this browser tab session (optional)
+if (sessionStorage.getItem("unlocked") === "true") {
+  document.getElementById("gate").style.display = "none";
+  document.getElementById("content").style.display = "block";
+}
+</script>
+
+</body>
+</html>
+
+   Add password-protected page
